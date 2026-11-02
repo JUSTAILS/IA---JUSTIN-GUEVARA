@@ -109,16 +109,51 @@ def dfs(inicio, objetivo):
         ruta.reverse()
     return existe_ruta, ruta, nodos_expandidos, len(visitados) # Retornar si existe ruta, la ruta encontrada, nodos expandidos y estados descubiertos
 
+def calcular_factor_ramificacion(nodos_descubiertos, profundidad):
+    if nodos_descubiertos < 1 or profundidad < 0:
+        return None
+    if profundidad == 0:
+        return None
+    # Una ruta de profundidad d contiene al menos d+1 estados.
+    if nodos_descubiertos < profundidad + 1:
+        return None
+    if nodos_descubiertos == profundidad + 1:
+        return 1.0
+    def suma_nodos(b):
+        return sum(b ** nivel for nivel in range(profundidad + 1))
+    # Límites iniciales de la búsqueda binaria.
+    inferior = 1.0
+    superior = 2.0
+    # Ampliar el límite superior hasta encontrar el intervalo.
+    while suma_nodos(superior) < nodos_descubiertos:
+        superior *= 2
+    # Aproximación del factor mediante búsqueda binaria.
+    for _ in range(100):
+        medio = (inferior + superior) / 2
+        if suma_nodos(medio) < nodos_descubiertos:
+            inferior = medio
+        else:
+            superior = medio
+    return (inferior + superior) / 2
+
 # Medición de tiempo y ejecución de BFS y DFS
 inicio_bfs = time.perf_counter()
 resultado_bfs = bfs(estadoInicial, estadoObjetivo)
 fin_bfs = time.perf_counter()
 tiempo_bfs = fin_bfs - inicio_bfs
+factor_bfs = calcular_factor_ramificacion(
+    resultado_bfs[3],
+    len(resultado_bfs[1]) - 1
+)
 
 inicio_dfs = time.perf_counter()
 resultado_dfs = dfs(estadoInicial, estadoObjetivo)
 fin_dfs = time.perf_counter()
 tiempo_dfs = fin_dfs - inicio_dfs
+factor_dfs = calcular_factor_ramificacion(
+    resultado_dfs[3],
+    len(resultado_dfs[1]) - 1
+)
 
 # Resultados
 print()
@@ -129,6 +164,8 @@ print("¿Existe ruta?:", resultado_bfs[0])
 print("Ruta:", resultado_bfs[1])
 print("Nodos expandidos:", resultado_bfs[2])
 print("Estados descubiertos:", resultado_bfs[3])
+print("Factor de ramificación efectivo:", 
+      f"{factor_bfs:.6f}" if factor_bfs is not None else "No calculable")
 print()
 print("==============================================")
 print()
@@ -139,3 +176,5 @@ print("¿Existe ruta?:", resultado_dfs[0])
 print("Ruta:", resultado_dfs[1])
 print("Nodos expandidos:", resultado_dfs[2])
 print("Estados descubiertos:", resultado_dfs[3])
+print("Factor de ramificación efectivo:", 
+      f"{factor_dfs:.6f}" if factor_dfs is not None else "No calculable")
